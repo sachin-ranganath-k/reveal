@@ -339,7 +339,7 @@ h1{font-size:clamp(34px,9vw,60px);line-height:1.02;margin:0 0 16px;font-weight:4
 <div id="root"></div>
 
 <script type="text/babel">
-const NAMESPACE = "snk-baby-reveal-secret-2026";
+const NAMESPACE = "snk_baby_reveal_secret_2026";
 
 const CONFIG = {
   gender: "boy", // Change to "girl" when desired
@@ -407,8 +407,15 @@ function App(){
   const [switchingGender, setSwitchingGender] = React.useState("boy");
   const [suspenseProgress, setSuspenseProgress] = React.useState(0);
 
-  // Live Guess Tally State
-  const [guesses, setGuesses] = React.useState({ boy: 0, girl: 0 });
+  // Initialize cached counts
+  const [guesses, setGuesses] = React.useState(() => {
+    try {
+      const saved = localStorage.getItem("tally_cache");
+      return saved ? JSON.parse(saved) : { boy: 0, girl: 0 };
+    } catch(e) {
+      return { boy: 0, girl: 0 };
+    }
+  });
   const [myGuess, setMyGuess] = React.useState(null);
 
   const gender = CONFIG.gender.toLowerCase();
@@ -419,36 +426,83 @@ function App(){
     async function loadTotals() {
       try {
         const [boyRes, girlRes] = await Promise.allSettled([
-          fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/boy`).then(r => r.ok ? r.json() : { count: 0 }),
-          fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/girl`).then(r => r.ok ? r.json() : { count: 0 })
+          fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/boy`).then(r => r.ok ? r.json() : null),
+          fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/girl`).then(r => r.ok ? r.json() : null)
         ]);
 
-        setGuesses({
-          boy: boyRes.status === "fulfilled" ? (boyRes.value.count || 0) : 0,
-          girl: girlRes.status === "fulfilled" ? (girlRes.value.count || 0) : 0
+        const cloudBoy = (boyRes.status === "fulfilled" && boyRes.value && typeof boyRes.value.count === "number") ? boyRes.value.count : null;
+        const cloudGirl = (girlRes.status === "fulfilled" && girlRes.value && typeof girlRes.value.count === "number") ? girlRes.value.count : null;
+
+        setGuesses(prev => {
+          const merged = {
+            boy: cloudBoy !== null ? Math.max(cloudBoy, prev.boy) : prev.boy,
+            girl: cloudGirl !== null ? Math.max(cloudGirl, prev.girl) : prev.girl
+          };
+          try { localStorage.setItem("tally_cache", JSON.stringify(merged)); } catch(e){}
+          return merged;
         });
       } catch (err) {
-        console.error("Failed to load initial counts", err);
+        console.warn("Using offline cached totals", err);
       }
     }
     loadTotals();
   }, []);
 
-  const handleVoteAndReveal = (choice) => {
+  const handleVoteAndReveal = async (choice) => {
     if (revealing || revealed) return;
 
     setMyGuess(choice);
 
-    // Optimistically update counts for immediate display
-    setGuesses(prev => ({
-      ...prev,
-      [choice]: prev[choice] + 1
-    }));
+    // Check if this device has already cast a unique vote
+    const hasAlreadyVoted = localStorage.getItem("baby_reveal_has_voted");
 
-    // Trigger increment counter in the background
-    fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/${choice}/up`).catch(() => {});
+    if (!hasAlreadyVoted) {
+      // First time voting from this device -> lock it in
+      try { localStorage.setItem("baby_reveal_has_voted", "true"); } catch(e){}
 
-    triggerReveal();
+      // Instantly increment vote locally
+      const updated = {
+        boy: choice === "boy" ? guesses.boy + 1 : guesses.boy,
+        girl: choice === "girl" ? guesses.girl + 1 : guesses.girl
+      };
+      setGuesses(updated);
+      try { localStorage.setItem("tally_cache", JSON.stringify(updated)); } catch(e){}
+
+      triggerReveal();
+
+      // Send vote to cloud counter
+      try {
+        const upRes = await fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/${choice}/up`);
+        if (upRes.ok) {
+          const upData = await upRes.json();
+          const serverChoiceCount = (upData && typeof upData.count === "number") ? upData.count : updated[choice];
+
+          const other = choice === "boy" ? "girl" : "boy";
+          let serverOtherCount = updated[other];
+          try {
+            const otherRes = await fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/${other}`);
+            if (otherRes.ok) {
+              const otherData = await otherRes.json();
+              if (otherData && typeof otherData.count === "number") {
+                serverOtherCount = otherData.count;
+              }
+            }
+          } catch(e) {}
+
+          const merged = {
+            [choice]: Math.max(serverChoiceCount, updated[choice]),
+            [other]: Math.max(serverOtherCount, updated[other])
+          };
+          setGuesses(merged);
+          try { localStorage.setItem("tally_cache", JSON.stringify(merged)); } catch(e){}
+        }
+      } catch (err) {
+        console.warn("Could not sync with counter server; kept local count", err);
+      }
+    } else {
+      // Duplicate vote from same device: ignore count increment and proceed to reveal
+      triggerReveal();
+    }
   };
 
   const triggerReveal = () => {
@@ -499,7 +553,7 @@ function App(){
             <div className="heart">♡</div>
             <h1>Our little<br/>miracle has arrived.</h1>
             <p className="sub">After nine beautiful months, the moment we've been waiting for is finally here.</p>
-            <button className="btn btnInteractive" onClick={() => setStep(1)}>BEGIN THE REVEAL ✦</button>
+            <button className="btn btnInteractive" onClick={() => setStep(1)}>BEGIN THE REVEAL ❤️</button>
           </>
         )}
 
@@ -560,20 +614,19 @@ function App(){
         {/* Final Reveal Screen (Guess count placed at the top) */}
         {revealed && (
           <>
-             <div className="guessTally">
-               <div className="guessTitle">
-                 Family & Friends Guesses ({totalGuesses})
-               </div>
-               <div className="guessBar">
-                 <div className="guessBarBoy" style={{ width: `${boyPct}%` }} />
-                 <div className="guessBarGirl" style={{ width: `${girlPct}%` }} />
-               </div> 
-               <div className="guessNumbers">
-                 <span>💙 Boy: {guesses.boy} ({boyPct}%)</span>
-                 <span>💗 Girl: {guesses.girl} ({girlPct}%)</span>
-               </div>
-             </div>
-            
+            <div className="guessTally">
+              <div className="guessTitle">
+                Family & Friends Guesses ({totalGuesses})
+              </div>
+              <div className="guessBar">
+                <div className="guessBarBoy" style={{ width: `${boyPct}%` }} />
+                <div className="guessBarGirl" style={{ width: `${girlPct}%` }} />
+              </div> 
+              <div className="guessNumbers">
+                <span>💙 Boy: {guesses.boy} ({boyPct}%)</span>
+                <span>💗 Girl: {guesses.girl} ({girlPct}%)</span>
+              </div>
+            </div>
 
             <div className="eyebrow">The moment we've waited for</div>
             <div className="emoji">{isBoy ? "🧸💙" : "🧸💗"}</div>
