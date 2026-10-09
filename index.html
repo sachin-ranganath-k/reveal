@@ -426,8 +426,8 @@ function App(){
     async function loadTotals() {
       try {
         const [boyRes, girlRes] = await Promise.allSettled([
-          fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/boy`).then(r => r.ok ? r.json() : null),
-          fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/girl`).then(r => r.ok ? r.json() : null)
+          fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/boy`).then(r => r.ok ? r.json() : null),
+          fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/girl`).then(r => r.ok ? r.json() : null)
         ]);
 
         const cloudBoy = (boyRes.status === "fulfilled" && boyRes.value && typeof boyRes.value.count === "number") ? boyRes.value.count : null;
@@ -472,7 +472,7 @@ function App(){
 
       // Send vote to cloud counter
       try {
-        const upRes = await fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/${choice}/up`);
+        const upRes = await fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/${choice}/up`);
         if (upRes.ok) {
           const upData = await upRes.json();
           const serverChoiceCount = (upData && typeof upData.count === "number") ? upData.count : updated[choice];
@@ -480,7 +480,7 @@ function App(){
           const other = choice === "boy" ? "girl" : "boy";
           let serverOtherCount = updated[other];
           try {
-            const otherRes = await fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/${other}`);
+            const otherRes = await fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/${other}`);
             if (otherRes.ok) {
               const otherData = await otherRes.json();
               if (otherData && typeof otherData.count === "number") {
