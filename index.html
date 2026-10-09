@@ -9,19 +9,30 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
 *{box-sizing:border-box}
-html,body,#root{margin:0;width:100%;height:100%;font-family:Georgia,'Times New Roman',serif}
-body{overflow:hidden;background:#090b18;color:#fff}
+html,body,#root{
+  margin:0;
+  width:100%;
+  min-height:100%;
+  font-family:Georgia,'Times New Roman',serif;
+}
+body{
+  overflow-x:hidden;
+  overflow-y:auto;
+  background:#090b18;
+  color:#fff;
+}
 button{font:inherit}
 
 .app{
-  height:100%;
   min-height:100svh;
   position:relative;
   overflow:hidden;
   background:radial-gradient(circle at 50% 38%,#28315d 0,#11152e 35%,#070916 75%);
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
+  padding:36px 16px 28px;
   transition:background .4s ease;
 }
 
@@ -33,6 +44,7 @@ button{font:inherit}
   background-size:83px 83px;
   opacity:.22;
   animation:drift 18s linear infinite;
+  pointer-events:none;
 }
 .stars:before{background-size:127px 127px;opacity:.16;animation-duration:28s}
 .stars:after{background-size:53px 53px;opacity:.12;animation-duration:13s}
@@ -40,24 +52,25 @@ button{font:inherit}
 
 .glow{
   position:absolute;
-  width:460px;
-  height:460px;
+  width:440px;
+  height:440px;
   border-radius:50%;
   background:radial-gradient(circle,rgba(255,213,119,.22),transparent 67%);
   filter:blur(14px);
   animation:pulse 3s ease-in-out infinite;
+  pointer-events:none;
   transition:background .3s ease;
 }
-.glow.boyGlow{background:radial-gradient(circle,rgba(96,165,250,.38),transparent 70%)}
-.glow.girlGlow{background:radial-gradient(circle,rgba(244,114,182,.38),transparent 70%)}
+.glow.boyGlow{background:radial-gradient(circle,rgba(96,165,250,.35),transparent 70%)}
+.glow.girlGlow{background:radial-gradient(circle,rgba(244,114,182,.35),transparent 70%)}
 @keyframes pulse{50%{transform:scale(1.12);opacity:.75}}
 
 .card{
   position:relative;
   z-index:2;
-  width:min(92vw,560px);
-  min-height:650px;
-  padding:42px 28px 32px;
+  width:min(92vw,540px);
+  min-height:580px;
+  padding:38px 24px 30px;
   border:1px solid rgba(255,255,255,.16);
   border-radius:32px;
   background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.045));
@@ -71,15 +84,15 @@ button{font:inherit}
   overflow:hidden;
 }
 
-.eyebrow{letter-spacing:4px;text-transform:uppercase;font-size:11px;color:#e9d9a6;margin-bottom:20px}
-h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:400}
-.sub{font-size:17px;line-height:1.6;color:#d7d9e6;max-width:430px}
+.eyebrow{letter-spacing:4px;text-transform:uppercase;font-size:11px;color:#e9d9a6;margin-bottom:18px}
+h1{font-size:clamp(34px,9vw,60px);line-height:1.02;margin:0 0 16px;font-weight:400}
+.sub{font-size:16px;line-height:1.6;color:#d7d9e6;max-width:420px}
 
 .btn{
-  margin-top:30px;
+  margin-top:26px;
   border:0;
   border-radius:999px;
-  padding:15px 28px;
+  padding:14px 28px;
   cursor:pointer;
   background:linear-gradient(135deg,#fff0c4,#d9b96d);
   color:#18130a;
@@ -90,7 +103,7 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
 }
 .btn:hover{transform:translateY(-2px) scale(1.02)}
 
-.heart{font-size:100px;animation:heartbeat 1.4s infinite;margin:12px 0}
+.heart{font-size:68px;animation:heartbeat 1.4s infinite;margin:10px 0}
 @keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.13)}28%{transform:scale(1)}42%{transform:scale(1.13)}56%{transform:scale(1)}}
 
 .progress{
@@ -105,10 +118,10 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
 .progress i{display:block;height:100%;background:#ead08a;border-radius:5px;transition:width .4s ease}
 
 /* Choice Cards (Step 2 & Reveal Animation) */
-.choices{display:flex;gap:16px;margin-top:28px;width:100%;justify-content:center}
+.choices{display:flex;gap:16px;margin-top:26px;width:100%;justify-content:center;align-items:center}
 .choice{
-  width:150px;
-  height:165px;
+  width:145px;
+  height:160px;
   border-radius:24px;
   border:1px solid rgba(255,255,255,.2);
   background:rgba(255,255,255,.07);
@@ -122,7 +135,7 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
   font-size:16px;
   position:relative;
 }
-.choice .emoji{font-size:52px;margin-bottom:12px;transition:transform .2s ease}
+.choice .emoji{font-size:50px;margin-bottom:12px;transition:transform .2s ease}
 
 /* Interactive Button Pulsing */
 .btnInteractive{
@@ -145,15 +158,15 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
 .btnInteractive::after{
   content:"☝";
   position:absolute;
-  right:-38px;
-  bottom:-25px;
-  font-size:30px;
+  right:-36px;
+  bottom:-22px;
+  font-size:28px;
   line-height:1;
   animation:handTap 1s ease-in-out infinite;
   pointer-events:none;
   filter:drop-shadow(0 2px 5px rgba(0,0,0,.45));
 }
-.btnInteractive:hover{transform:scale(1.06);filter:brightness(1.2)}
+.btnInteractive:hover{transform:scale(1.05);filter:brightness(1.18)}
 .btnInteractive:active{transform:scale(.97)}
 
 @keyframes buttonPulse{0%,100%{filter:brightness(1);box-shadow:0 0 16px rgba(255,210,90,.5)}50%{filter:brightness(1.18);box-shadow:0 0 30px rgba(255,210,90,.9)}}
@@ -164,7 +177,7 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
 .choice.suspenseActiveBoy{
   border-color:#60a5fa !important;
   background:rgba(59,130,246,.28) !important;
-  box-shadow:0 0 32px rgba(96,165,250,.85),inset 0 0 18px rgba(96,165,250,.4) !important;
+  box-shadow:0 0 32px rgba(96,165,250,.85),inset 0 0 16px rgba(96,165,250,.4) !important;
   transform:translateY(-8px) scale(1.08) !important;
   filter:brightness(1.2) !important;
   opacity:1 !important;
@@ -177,7 +190,7 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
 .choice.suspenseActiveGirl{
   border-color:#f472b6 !important;
   background:rgba(236,72,153,.28) !important;
-  box-shadow:0 0 32px rgba(244,114,182,.85),inset 0 0 18px rgba(244,114,182,.4) !important;
+  box-shadow:0 0 32px rgba(244,114,182,.85),inset 0 0 16px rgba(244,114,182,.4) !important;
   transform:translateY(-8px) scale(1.08) !important;
   filter:brightness(1.2) !important;
   opacity:1 !important;
@@ -188,9 +201,9 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
 }
 
 .choice.suspenseDimmed{
-  opacity:.32 !important;
+  opacity:.3 !important;
   transform:scale(.94) !important;
-  filter:grayscale(40%) !important;
+  filter:grayscale(45%) !important;
 }
 
 @keyframes bounceEmoji{
@@ -204,7 +217,7 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
   height:5px;
   background:rgba(255,255,255,.14);
   border-radius:99px;
-  margin-top:30px;
+  margin-top:28px;
   overflow:hidden;
 }
 .suspenseProgressFill{
@@ -225,12 +238,66 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
   min-height:16px;
 }
 
+/* Guest Guess Tally Box (Positioned at Top) */
+.guessTally{
+  margin-top:0;
+  margin-bottom:16px;
+  width:100%;
+  max-width:340px;
+  background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:18px;
+  padding:12px 18px;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+.guessTitle{
+  font:600 11px Arial,sans-serif;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:#e9d9a6;
+  margin-bottom:8px;
+}
+.guessBar{
+  height:8px;
+  width:100%;
+  background:rgba(255,255,255,.12);
+  border-radius:99px;
+  display:flex;
+  overflow:hidden;
+  margin-bottom:8px;
+}
+.guessBarBoy{
+  background:#60a5fa;
+  box-shadow:0 0 8px #60a5fa;
+  transition:width .6s ease;
+}
+.guessBarGirl{
+  background:#f472b6;
+  box-shadow:0 0 8px #f472b6;
+  transition:width .6s ease;
+}
+.guessNumbers{
+  display:flex;
+  justify-content:space-between;
+  font:12px Arial,sans-serif;
+  color:#e2e8f0;
+}
+
 /* Final Reveal Screen */
-.final{min-height:700px}
-.final .emoji{font-size:80px;animation:pop .8s cubic-bezier(.2,1.5,.4,1)}
+.final{
+  min-height:auto;
+  padding:30px 22px 26px;
+}
+.final .emoji{
+  font-size:68px;
+  animation:pop .8s cubic-bezier(.2,1.5,.4,1);
+  margin-bottom:6px;
+}
 @keyframes pop{from{transform:scale(.1) rotate(-15deg);opacity:0}to{transform:scale(1);opacity:1}}
-.final h1{font-size:clamp(54px,14vw,90px);margin-top:12px}
-.details{margin-top:18px;padding:14px 22px;border-radius:18px;background:rgba(0,0,0,.15);color:#ddd;font-size:14px;line-height:1.7}
+.final h1{
+  font-size:clamp(46px,11vw,74px);
+  margin:6px 0 12px;
+}
 .confetti{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden}
 .piece{position:absolute;top:-20px;width:8px;height:15px;animation:fall 3.8s linear forwards;opacity:.9}
 @keyframes fall{to{transform:translate3d(var(--x),110vh,0) rotate(720deg);opacity:0}}
@@ -239,7 +306,7 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
   margin-top:10px;
   border:1px solid rgba(255,255,255,.25);
   border-radius:999px;
-  padding:11px 20px;
+  padding:10px 20px;
   cursor:pointer;
   background:rgba(255,255,255,.08);
   color:#fff;
@@ -248,14 +315,23 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
   backdrop-filter:blur(8px);
   transition:.2s;
 }
-.shareBtn:hover{background:rgba(255,255,255,.15);transform:translateY(-1px)}
+.shareBtn:hover{background:rgba(255,255,255,.16);transform:translateY(-1px)}
 .shareMsg{font:11px Arial,sans-serif;color:#e9d9a6;margin-top:8px;min-height:14px}
-.footer{position:absolute;bottom:12px;font:11px Arial,sans-serif;color:rgba(255,255,255,.38);letter-spacing:1px}
+
+.footer{
+  position:relative;
+  z-index:10;
+  margin-top:12px;
+  font:11px Arial,sans-serif;
+  color:rgba(255,255,255,.48);
+  letter-spacing:1px;
+  text-align:center;
+}
 
 @media(max-width:480px){
-  .card{min-height:620px;padding:38px 20px}
+  .card{min-height:550px;padding:32px 18px}
   .choices{gap:10px}
-  .choice{width:135px;height:150px}
+  .choice{width:132px;height:148px}
 }
 </style>
 </head>
@@ -263,14 +339,15 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
 <div id="root"></div>
 
 <script type="text/babel">
+const NAMESPACE = "snk-baby-reveal-secret-2026";
+
 const CONFIG = {
   gender: "boy", // Change to "girl" when desired
   mother: "Mom",
   father: "Dad",
-  // babyName: "Our Little one",
+  // babyName: "Our Little Miracle",
   birthDate: "08 October 2026",
-  birthTime: "10:32 AM",
-  weight: "3.2 kg"
+  // birthTime: "10:32 AM",
 };
 
 function Confetti(){
@@ -303,7 +380,7 @@ function Confetti(){
 async function shareReveal(){
   const shareData = {
     title: "Our Baby Reveal 💙💗",
-    text: "A little one has arrived. Come see our baby reveal! ✨",
+    text: "A little miracle has arrived. Come see our baby reveal! ✨",
     url: window.location.href
   };
   const msg = document.getElementById("shareMsg");
@@ -330,24 +407,62 @@ function App(){
   const [switchingGender, setSwitchingGender] = React.useState("boy");
   const [suspenseProgress, setSuspenseProgress] = React.useState(0);
 
+  // Live Guess Tally State
+  const [guesses, setGuesses] = React.useState({ boy: 0, girl: 0 });
+  const [myGuess, setMyGuess] = React.useState(null);
+
   const gender = CONFIG.gender.toLowerCase();
   const isBoy = gender === "boy";
 
-  const triggerReveal = () => {
+  // Pre-fetch live totals on page load
+  React.useEffect(() => {
+    async function loadTotals() {
+      try {
+        const [boyRes, girlRes] = await Promise.allSettled([
+          fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/boy`).then(r => r.ok ? r.json() : { count: 0 }),
+          fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/girl`).then(r => r.ok ? r.json() : { count: 0 })
+        ]);
+
+        setGuesses({
+          boy: boyRes.status === "fulfilled" ? (boyRes.value.count || 0) : 0,
+          girl: girlRes.status === "fulfilled" ? (girlRes.value.count || 0) : 0
+        });
+      } catch (err) {
+        console.error("Failed to load initial counts", err);
+      }
+    }
+    loadTotals();
+  }, []);
+
+  const handleVoteAndReveal = (choice) => {
     if (revealing || revealed) return;
+
+    setMyGuess(choice);
+
+    // Optimistically update counts for immediate display
+    setGuesses(prev => ({
+      ...prev,
+      [choice]: prev[choice] + 1
+    }));
+
+    // Trigger increment counter in the background
+    fetch(`https://api.counterapi.dev/v1/${NAMESPACE}/${choice}/up`).catch(() => {});
+
+    triggerReveal();
+  };
+
+  const triggerReveal = () => {
     setRevealing(true);
 
-    const DURATION = 4600; // 4.6 seconds of suspense drumroll
+    const DURATION = 4600; // 4.6 seconds drumroll
     const startTime = Date.now();
     let current = "boy";
 
-    // Switch alternating between boy and girl every 220ms
     const switchTimer = setInterval(() => {
       current = current === "boy" ? "girl" : "boy";
       setSwitchingGender(current);
     }, 220);
 
-    // Progress bar fill
     const progressTimer = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const pct = Math.min((elapsed / DURATION) * 100, 100);
@@ -361,6 +476,10 @@ function App(){
       }
     }, 30);
   };
+
+  const totalGuesses = guesses.boy + guesses.girl;
+  const boyPct = totalGuesses > 0 ? Math.round((guesses.boy / totalGuesses) * 100) : 50;
+  const girlPct = totalGuesses > 0 ? 100 - boyPct : 50;
 
   return (
     <main className={"app " + (revealed ? (isBoy ? "boy" : "girl") : "")}>
@@ -378,9 +497,9 @@ function App(){
           <>
             <div className="eyebrow">A tiny secret • A lifetime of love</div>
             <div className="heart">♡</div>
-            <h1>Our little<br/>one has arrived.</h1>
+            <h1>Our little<br/>miracle has arrived.</h1>
             <p className="sub">After nine beautiful months, the moment we've been waiting for is finally here.</p>
-            <button className="btn btnInteractive" onClick={() => setStep(1)}>BEGIN THE REVEAL </button>
+            <button className="btn btnInteractive" onClick={() => setStep(1)}>BEGIN THE REVEAL ✦</button>
           </>
         )}
 
@@ -389,29 +508,30 @@ function App(){
           <>
             <div className="eyebrow">One last moment...</div>
             <div className="heart">♥</div>
-            <h1>Cooooool...!</h1>
-            <p className="sub">The wait is almost over. Step inside to see who has arrived.</p>
-            <button className="btn btnInteractive" onClick={() => setStep(2)}>R U READY ?</button>
+            <h1>Ready to meet<br/>our miracle?</h1>
+            <p className="sub">Take a breath. Our sweetest little surprise is only one tap away.</p>
+            <button className="btn btnInteractive" onClick={() => setStep(2)}>I'M READY</button>
           </>
         )}
 
         {/* Step 2: Guessing Selection */}
         {!revealed && !revealing && step === 2 && (
           <>
-            <h1>Make your guess</h1>
+            <div className="eyebrow">Revealing soon...!</div>
+            <h1>Make your guess..!<br/>Just for fun ☺️</h1>
             <div className="choices">
-              <button className="choice btnInteractive" onClick={triggerReveal}>
+              <button className="choice btnInteractive" onClick={() => handleVoteAndReveal("boy")}>
                 <span className="emoji">💙</span>Baby Boy
               </button>
-              <p style={{marginTop:"74px"}}>OR</p>
-              <button className="choice btnInteractive" onClick={triggerReveal}>
+              <p style={{marginTop:"75px"}}>OR</p>
+              <button className="choice btnInteractive" onClick={() => handleVoteAndReveal("girl")}>
                 <span className="emoji">💗</span>Baby Girl
               </button>
             </div>
           </>
         )}
 
-        {/* Revealing / Switching Drumroll (Matches Step 2 Design) */}
+        {/* Revealing: Drumroll animation */}
         {!revealed && revealing && (
           <>
             <div className="eyebrow">DRUMROLL PLEASE... 🥁</div>
@@ -437,19 +557,30 @@ function App(){
           </>
         )}
 
-        {/* Final Reveal */}
+        {/* Final Reveal Screen (Guess count placed at the top) */}
         {revealed && (
           <>
+            {/* Live Guest Guess Breakdown - At the Top */}
+            {// <div className="guessTally">
+            //   <div className="guessTitle">
+            //     Family & Friends Guesses ({totalGuesses})
+            //   </div>
+            //   <div className="guessBar">
+            //     <div className="guessBarBoy" style={{ width: `${boyPct}%` }} />
+            //     <div className="guessBarGirl" style={{ width: `${girlPct}%` }} />
+            //   </div> 
+            //   <div className="guessNumbers">
+            //     <span>💙 Boy: {guesses.boy} ({boyPct}%)</span>
+            //     <span>💗 Girl: {guesses.girl} ({girlPct}%)</span>
+            //   </div>
+            // </div>
+            }
+
             <div className="eyebrow">The moment we've waited for</div>
             <div className="emoji">{isBoy ? "🧸💙" : "🧸💗"}</div>
             <h1>It's a<br/>{isBoy ? "BOY!" : "GIRL!"}</h1>
             <p className="sub">{isBoy ? "Our little prince has arrived." : "Our little princess has arrived."}</p>
-            <div className="details">
-              <b>{CONFIG.babyName}</b><br/>
-              Born {CONFIG.birthDate} • {CONFIG.birthTime}<br/>
-              {CONFIG.weight}
-            </div>
-            <p className="sub" style={{ marginTop: 22, fontSize: 14 }}>
+            <p className="sub" style={{ marginTop: 18, fontSize: 14 }}>
               With love from {CONFIG.mother} & {CONFIG.father} ♡
             </p>
             <button className="btn" onClick={() => location.reload()}>REPLAY THE MAGIC</button>
@@ -459,7 +590,7 @@ function App(){
         )}
       </section>
 
-      <div className="footer">MADE WITH LOVE FROM HIS FATHER SACHIN (RANGANATH)</div>
+      <div className="footer">MADE WITH LOVE BY FATHER SACHIN (RANGANATH)</div>
     </main>
   );
 }
