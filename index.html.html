@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A Little Secret</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box}html,body,#root{margin:0;width:100%;height:100%;font-family:Georgia,'Times New Roman',serif}
+body{overflow:hidden;background:#090b18;color:#fff}
+button{font:inherit}
+.app{height:100%;min-height:100svh;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 38%,#28315d 0,#11152e 35%,#070916 75%);display:flex;align-items:center;justify-content:center}
+.stars,.stars:before,.stars:after{position:absolute;inset:0;content:"";background-image:radial-gradient(#fff 1px,transparent 1px);background-size:83px 83px;opacity:.22;animation:drift 18s linear infinite}
+.stars:before{background-size:127px 127px;opacity:.16;animation-duration:28s}.stars:after{background-size:53px 53px;opacity:.12;animation-duration:13s}
+@keyframes drift{to{transform:translateY(83px)}}
+.glow{position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(255,213,119,.22),transparent 67%);filter:blur(10px);animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.12);opacity:.7}}
+.card{position:relative;z-index:2;width:min(92vw,560px);min-height:650px;padding:42px 28px 32px;border:1px solid rgba(255,255,255,.16);border-radius:32px;background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.045));backdrop-filter:blur(20px);box-shadow:0 30px 90px rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.eyebrow{letter-spacing:4px;text-transform:uppercase;font-size:11px;color:#e9d9a6;margin-bottom:20px}
+h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:400}
+.sub{font-size:17px;line-height:1.6;color:#d7d9e6;max-width:430px}
+.btn{margin-top:30px;border:0;border-radius:999px;padding:15px 28px;cursor:pointer;background:linear-gradient(135deg,#fff0c4,#d9b96d);color:#18130a;font-weight:bold;letter-spacing:1px;box-shadow:0 12px 30px rgba(217,185,109,.25);transition:.25s}
+.btn:hover{transform:translateY(-2px) scale(1.02)}
+.heart{font-size:72px;animation:heartbeat 1.4s infinite;margin:12px 0}
+@keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.13)}28%{transform:scale(1)}42%{transform:scale(1.13)}56%{transform:scale(1)}}
+.progress{position:absolute;top:18px;left:28px;right:28px;height:2px;background:rgba(255,255,255,.12);border-radius:5px}.progress i{display:block;height:100%;background:#ead08a;border-radius:5px;transition:width .7s}
+.choices{display:flex;gap:16px;margin-top:28px;width:100%;justify-content:center}.choice{width:150px;height:165px;border-radius:24px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:white;cursor:pointer;transition:.35s;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:16px}.choice:hover{transform:translateY(-8px);background:rgba(255,255,255,.13)}.choice .emoji{font-size:52px;margin-bottom:12px}
+.final{min-height:700px}.final .emoji{font-size:80px;animation:pop .8s cubic-bezier(.2,1.5,.4,1)}@keyframes pop{from{transform:scale(.1) rotate(-15deg);opacity:0}to{transform:scale(1);opacity:1}}
+.final h1{font-size:clamp(54px,14vw,90px);margin-top:12px}
+.details{margin-top:18px;padding:14px 22px;border-radius:18px;background:rgba(0,0,0,.15);color:#ddd;font-size:14px;line-height:1.7}
+.confetti{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden}.piece{position:absolute;top:-20px;width:8px;height:15px;animation:fall 3.8s linear forwards;opacity:.9}@keyframes fall{to{transform:translate3d(var(--x),110vh,0) rotate(720deg);opacity:0}}
+.shareBtn{margin-top:10px;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:11px 20px;cursor:pointer;background:rgba(255,255,255,.08);color:#fff;font:12px Arial,sans-serif;letter-spacing:.8px;backdrop-filter:blur(8px);transition:.2s}.shareBtn:hover{background:rgba(255,255,255,.15);transform:translateY(-1px)}.shareMsg{font:11px Arial,sans-serif;color:#e9d9a6;margin-top:8px;min-height:14px}.footer{position:absolute;bottom:12px;font:11px Arial,sans-serif;color:rgba(255,255,255,.38);letter-spacing:1px}
+@media(max-width:480px){.card{min-height:620px;padding:38px 20px}.choices{gap:10px}.choice{width:135px;height:150px}}
+</style>
+
+<style>
+.btn,.shareBtn,.choice{
+  position:relative;
+  cursor:pointer;
+  animation:buttonPulse 1.15s ease-in-out infinite;
+  transition:transform .18s ease,filter .18s ease;
+}
+.btn::before,.shareBtn::before,.choice::before{
+  content:"";
+  position:absolute;
+  inset:-6px;
+  border-radius:inherit;
+  border:2px solid rgba(255,255,255,.8);
+  box-shadow:0 0 22px rgba(255,210,90,.75);
+  animation:buttonRing 1.15s ease-out infinite;
+  pointer-events:none;
+  z-index:-1;
+}
+.btn::after,.shareBtn::after{
+  content:"☝";
+  position:absolute;
+  right:-38px;
+  bottom:-25px;
+  font-size:30px;
+  line-height:1;
+  animation:handTap 1s ease-in-out infinite;
+  pointer-events:none;
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.45));
+}
+.btn:hover,.shareBtn:hover,.choice:hover{transform:scale(1.06);filter:brightness(1.2)}
+.btn:active,.shareBtn:active,.choice:active{transform:scale(.97)}
+@keyframes buttonPulse{0%,100%{filter:brightness(1);box-shadow:0 0 16px rgba(255,210,90,.5)}50%{filter:brightness(1.18);box-shadow:0 0 30px rgba(255,210,90,.9)}}
+@keyframes buttonRing{0%{transform:scale(.98);opacity:.95}70%{transform:scale(1.08);opacity:.15}100%{transform:scale(1.12);opacity:0}}
+@keyframes handTap{0%,100%{transform:translate(0,0) rotate(-8deg)}45%{transform:translate(-4px,-7px) rotate(-14deg)}65%{transform:translate(0,0) rotate(-8deg)}}
+.suspenseWord{
+  position:relative;
+  display:inline-block;
+  font-family:Arial,sans-serif;
+  font-size:clamp(68px,20vw,145px);
+  font-weight:1000;
+  line-height:1;
+  margin:18px 0;
+  letter-spacing:-5px;
+  color:#fff;
+  text-shadow:0 0 18px rgba(255,255,255,.7),0 0 45px rgba(255,180,100,.55);
+  animation:curiosityFlash .32s cubic-bezier(.2,.8,.3,1);
+}
+.suspenseHint{
+  font-size:12px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  opacity:.78;
+  margin-top:22px;
+}
+@keyframes curiosityFlash{
+  0%{opacity:0;transform:scale(.45) rotate(-5deg);filter:blur(14px)}
+  25%{opacity:1;transform:scale(1.18) rotate(2deg);filter:blur(0)}
+  45%{transform:scale(.94) rotate(-1deg)}
+  70%{transform:scale(1.04) rotate(0)}
+  100%{opacity:1;transform:scale(1) rotate(0);filter:blur(0)}
+}45%{opacity:1;transform:scale(1.08);filter:blur(0)}100%{opacity:1;transform:scale(1)}}
+</style>
+
+<style id="curiosity-overlay-css">
+.curiosityOverlay{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  text-align:center;
+  overflow:hidden;
+  background:#080b18;
+  color:#fff;
+}
+.curiosityOverlay.boyFlash{
+  background:radial-gradient(circle at center,#164b8f 0%,#08111f 48%,#02040a 100%);
+}
+.curiosityOverlay.girlFlash{
+  background:radial-gradient(circle at center,#9d285f 0%,#210817 48%,#050106 100%);
+}
+.curiosityMain{
+  font-family:Arial,sans-serif;
+  font-size:clamp(72px,22vw,170px);
+  font-weight:1000;
+  line-height:.9;
+  letter-spacing:-6px;
+  text-shadow:0 0 20px rgba(255,255,255,.8),0 0 70px currentColor;
+  animation:curiosityHardFlash .33s ease-out;
+}
+.curiositySub{
+  margin-top:26px;
+  font:700 clamp(13px,3.5vw,19px) Arial,sans-serif;
+  letter-spacing:5px;
+  text-transform:uppercase;
+  opacity:.85;
+  animation:curiosityHardFlash .33s ease-out;
+}
+.curiosityProgress{
+  position:absolute;
+  left:10%;
+  right:10%;
+  bottom:35px;
+  height:3px;
+  background:rgba(255,255,255,.16);
+  border-radius:9px;
+  overflow:hidden;
+}
+.curiosityProgress i{
+  display:block;
+  height:100%;
+  background:#fff;
+  box-shadow:0 0 12px #fff;
+  transition:width .1s linear;
+}
+@keyframes curiosityHardFlash{
+  0%{opacity:0;transform:scale(1.45);filter:blur(18px)}
+  20%{opacity:1;transform:scale(.94);filter:blur(0)}
+  55%{opacity:1;transform:scale(1.03)}
+  100%{opacity:1;transform:scale(1)}
+}
+</style>
+</head>
+<body>
+<div id="curiosityOverlay">
+  <div id="curiosityWord">BOY</div>
+  <div id="curiosityHint">WHAT DO YOU THINK? • ALMOST THERE...</div>
+  <div id="curiosityBar"><i></i></div>
+</div>
+<div id="root"></div>
+<script type="text/babel">
+const CONFIG={
+  gender:"boy", // change to "girl"
+  mother:"Mom",
+  father:"Dad",
+  babyName:"Our Little Miracle",
+  birthDate:"08 October 2026",
+  birthTime:"10:32 AM",
+  weight:"3.2 kg"
+};
+
+function Confetti(){
+ const pieces=Array.from({length:90},(_,i)=>({i,x:Math.random()*100,dx:(Math.random()*60-30),delay:Math.random()*1.2,rot:Math.random()*360}));
+ return <div className="confetti">{pieces.map(p=><span key={p.i} className="piece" style={{left:p.x+"%",background:["#f5d76e","#fff","#a8d8ff","#f4a8c8"][p.i%4],animationDelay:p.delay+"s", "--x":p.dx+"vw",transform:`rotate(${p.rot}deg)`}}/>)}</div>
+}
+
+async function shareReveal(){
+ const shareData={
+   title:"Our Baby Reveal 💙💗",
+   text:"A little miracle has arrived. Come see our baby reveal! ✨",
+   url:window.location.href
+ };
+ const msg=document.getElementById("shareMsg");
+ try{
+   if(navigator.share){
+     await navigator.share(shareData);
+     msg.textContent="";
+   }else if(navigator.clipboard){
+     await navigator.clipboard.writeText(window.location.href);
+     msg.textContent="Link copied — paste it anywhere to share.";
+   }else{
+     msg.textContent="Copy this page URL from your browser to share it.";
+   }
+ }catch(e){
+   if(e && e.name==="AbortError") return;
+   msg.textContent="Share cancelled or unavailable.";
+ }
+}
+
+function App(){
+ const [step,setStep]=React.useState(0);
+ const [revealed,setRevealed]=React.useState(false);
+ const [suspense,setSuspense]=React.useState(null);
+ const [revealing,setRevealing]=React.useState(false);
+ const gender=CONFIG.gender.toLowerCase();
+ const isBoy=gender==="boy";
+ const reveal=()=>{
+   if(revealing || revealed) return;
+   setRevealing(true);
+   setStep(3);
+
+   const overlay=document.getElementById("curiosityOverlay");
+   const word=document.getElementById("curiosityWord");
+   const bar=document.querySelector("#curiosityBar i");
+   overlay.className="show";
+
+   const sequence=["BOY","GIRL","GIRL","BOY","GIRL","BOY","BOY","GIRL","BOY","GIRL",
+                   "GIRL","BOY","GIRL","BOY","BOY","GIRL","BOY","GIRL","BOY","GIRL",
+                   "BOY","GIRL","GIRL","BOY","GIRL","BOY","BOY","GIRL","BOY","GIRL"];
+   let i=0;
+   const switchWord=()=>{
+     const value=sequence[i%sequence.length];
+     word.textContent=value;
+     overlay.className="show "+value.toLowerCase();
+     word.classList.remove("flash");
+     void word.offsetWidth;
+     word.classList.add("flash");
+     i++;
+   };
+
+   switchWord();
+   const interval=setInterval(switchWord,300);
+
+   const started=Date.now();
+   const progress=setInterval(()=>{
+     const elapsed=Date.now()-started;
+     bar.style.width=Math.min(elapsed/10000*100,100)+"%";
+   },30);
+
+   setTimeout(()=>{
+     clearInterval(interval);
+     clearInterval(progress);
+     bar.style.width="100%";
+     overlay.className="";
+     setTimeout(()=>{
+       setSuspense(null);
+       setRevealed(true);
+       setRevealing(false);
+     },120);
+   },10000);
+ };
+ return <main className={"app "+(revealed?(isBoy?"boy":"girl"):"")}>
+   {revealing && <div className={"curiosityOverlay "+(suspense?.startsWith("BOY")?"boyFlash":"girlFlash")}>
+      <div className="curiosityMain">{suspense?.startsWith("BOY") ? "BOY" : "GIRL"}</div>
+      <div className="curiositySub">What do you think? • Almost there...</div>
+      <div className="curiosityProgress"><i style={{width:((curiosityTick/10000)*100)+"%"}}/></div>
+   </div>}
+   <div className="stars"/><div className="glow"/>
+   {revealed&&<Confetti/>}
+   <section className={"card "+(revealed?"final":"")}>
+    <div className="progress"><i style={{width:((step+1)/4*100)+"%"}}/></div>
+    {!revealed && step===0 && <>
+      <div className="eyebrow">A tiny secret • A lifetime of love</div>
+      <div className="heart">♡</div>
+      <h1>Our little<br/>miracle has arrived.</h1>
+      <p className="sub">After nine beautiful months, the moment we've been waiting for is finally here.</p>
+      <button className="btn" onClick={()=>setStep(1)}>BEGIN THE REVEAL ✦</button>
+    </>}
+    {!revealed && step===1 && <>
+      <div className="eyebrow">One last moment...</div>
+      <div className="heart">♥</div>
+      <h1>Can you feel<br/>the excitement?</h1>
+      <p className="sub">Take a breath. Our biggest little surprise is only one tap away.</p>
+      <button className="btn" onClick={()=>setStep(2)}>I'M READY</button>
+    </>}
+    {!revealed && step===2 && <>
+      <div className="eyebrow">Make your guess</div>
+      <h1>Who has<br/>joined us?</h1>
+      <p className="sub">Choose a door. But don't worry... the real secret is still waiting.</p>
+      <div className="choices">
+       <button className="choice" onClick={reveal}><span className="emoji">💙</span>Baby Boy</button>
+       <button className="choice" onClick={reveal}><span className="emoji">💗</span>Baby Girl</button>
+      </div>
+    </>}
+    {revealed && <>
+      <div className="eyebrow">The moment we've waited for</div>
+      <div className="emoji">{isBoy?"🧸💙":"🧸💗"}</div>
+      <h1>It's a<br/>{isBoy?"BOY!":"GIRL!"}</h1>
+      <p className="sub">{isBoy?"Our little prince has arrived.":"Our little princess has arrived."}</p>
+      <div className="details">
+       <b>{CONFIG.babyName}</b><br/>
+       Born {CONFIG.birthDate} • {CONFIG.birthTime}<br/>
+       {CONFIG.weight}
+      </div>
+      <p className="sub" style={{marginTop:22,fontSize:14}}>With love from {CONFIG.mother} & {CONFIG.father} ♡</p>
+      <button className="btn" onClick={()=>location.reload()}>REPLAY THE MAGIC</button>
+      <button className="shareBtn" onClick={shareReveal}>↗ SHARE THIS REVEAL</button>
+      <div className="shareMsg" id="shareMsg"></div>
+    </>}
+   </section>
+   <div className="footer">MADE WITH LOVE • A NEW CHAPTER BEGINS</div>
+ </main>
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body></html>
