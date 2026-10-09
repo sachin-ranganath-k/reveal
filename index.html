@@ -90,7 +90,7 @@ h1{font-size:clamp(38px,10vw,66px);line-height:.98;margin:0 0 18px;font-weight:4
 }
 .btn:hover{transform:translateY(-2px) scale(1.02)}
 
-.heart{font-size:72px;animation:heartbeat 1.4s infinite;margin:12px 0}
+.heart{font-size:100px;animation:heartbeat 1.4s infinite;margin:12px 0}
 @keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.13)}28%{transform:scale(1)}42%{transform:scale(1.13)}56%{transform:scale(1)}}
 
 .progress{
@@ -267,7 +267,7 @@ const CONFIG = {
   gender: "boy", // Change to "girl" when desired
   mother: "Mom",
   father: "Dad",
-  babyName: "Our Little Miracle",
+  // babyName: "Our Little one",
   birthDate: "08 October 2026",
   birthTime: "10:32 AM",
   weight: "3.2 kg"
@@ -303,7 +303,7 @@ function Confetti(){
 async function shareReveal(){
   const shareData = {
     title: "Our Baby Reveal 💙💗",
-    text: "A little miracle has arrived. Come see our baby reveal! ✨",
+    text: "A little one has arrived. Come see our baby reveal! ✨",
     url: window.location.href
   };
   const msg = document.getElementById("shareMsg");
@@ -378,9 +378,9 @@ function App(){
           <>
             <div className="eyebrow">A tiny secret • A lifetime of love</div>
             <div className="heart">♡</div>
-            <h1>Our little<br/>miracle has arrived.</h1>
+            <h1>Our little<br/>one has arrived.</h1>
             <p className="sub">After nine beautiful months, the moment we've been waiting for is finally here.</p>
-            <button className="btn btnInteractive" onClick={() => setStep(1)}>BEGIN THE REVEAL ✦</button>
+            <button className="btn btnInteractive" onClick={() => setStep(1)}>BEGIN THE REVEAL </button>
           </>
         )}
 
@@ -389,22 +389,21 @@ function App(){
           <>
             <div className="eyebrow">One last moment...</div>
             <div className="heart">♥</div>
-            <h1>Can you feel<br/>the excitement?</h1>
-            <p className="sub">Take a breath. Our biggest little surprise is only one tap away.</p>
-            <button className="btn btnInteractive" onClick={() => setStep(2)}>I'M READY</button>
+            <h1>Cooooool...!</h1>
+            <p className="sub">The wait is almost over. Step inside to see who has arrived.</p>
+            <button className="btn btnInteractive" onClick={() => setStep(2)}>R U READY ?</button>
           </>
         )}
 
         {/* Step 2: Guessing Selection */}
         {!revealed && !revealing && step === 2 && (
           <>
-            <div className="eyebrow">Make your guess</div>
-            <h1>Who has<br/>joined us?</h1>
-            <p className="sub">Choose a door. But don't worry... the real secret is still waiting.</p>
+            <h1>Make your guess</h1>
             <div className="choices">
               <button className="choice btnInteractive" onClick={triggerReveal}>
                 <span className="emoji">💙</span>Baby Boy
               </button>
+              <p style={{marginTop:"74px"}}>OR</p>
               <button className="choice btnInteractive" onClick={triggerReveal}>
                 <span className="emoji">💗</span>Baby Girl
               </button>
@@ -460,7 +459,7 @@ function App(){
         )}
       </section>
 
-      <div className="footer">MADE WITH LOVE • A NEW CHAPTER BEGINS</div>
+      <div className="footer">MADE WITH LOVE FROM HIS FATHER SACHIN (RANGANATH)</div>
     </main>
   );
 }
