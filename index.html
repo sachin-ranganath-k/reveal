@@ -425,7 +425,7 @@ function App(){
   // Load shared global totals through our server-side Vercel API.
   const refreshGlobalTotals = async () => {
     try {
-      const response = await fetch("/api/votes", { cache: "no-store" });
+      const response = await fetch("/votes", { cache: "no-store" });
       if (!response.ok) throw new Error(`Vote totals request failed (${response.status})`);
       const totals = await response.json();
       if (!Number.isFinite(totals.boy) || !Number.isFinite(totals.girl)) {
@@ -461,7 +461,7 @@ function App(){
     setRevealing(true);
     setMyGuess(choice);
     try {
-      const response = await fetch("/api/votes", {
+      const response = await fetch("/votes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ choice })
