@@ -339,7 +339,8 @@ h1{font-size:clamp(34px,9vw,60px);line-height:1.02;margin:0 0 16px;font-weight:4
 <div id="root"></div>
 
 <script type="text/babel">
-const NAMESPACE = "snk_baby_reveal_secret_2026";
+// Voting requests go through the Vercel serverless endpoint.
+// Never put your CounterAPI token in this public HTML file.
 
 const CONFIG = {
   gender: "boy", // Change to "girl" when desired
@@ -416,99 +417,72 @@ function App(){
       return { boy: 0, girl: 0 };
     }
   });
-  const [myGuess, setMyGuess] = React.useState(() => { try { return localStorage.getItem("baby_reveal_vote"); } catch(e) { return null; } });
-  const voteLock = React.useRef(false);
+  const [myGuess, setMyGuess] = React.useState(null);
 
   const gender = CONFIG.gender.toLowerCase();
   const isBoy = gender === "boy";
 
-  // Pre-fetch live totals on page load
-  React.useEffect(() => {
-    async function loadTotals() {
-      try {
-        const [boyRes, girlRes] = await Promise.allSettled([
-          fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/boy`).then(r => r.ok ? r.json() : null),
-          fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/girl`).then(r => r.ok ? r.json() : null)
-        ]);
-
-        const cloudBoy = (boyRes.status === "fulfilled" && boyRes.value && typeof boyRes.value.count === "number") ? boyRes.value.count : null;
-        const cloudGirl = (girlRes.status === "fulfilled" && girlRes.value && typeof girlRes.value.count === "number") ? girlRes.value.count : null;
-
-        setGuesses(prev => {
-          const merged = {
-            boy: cloudBoy !== null ? Math.max(cloudBoy, prev.boy) : prev.boy,
-            girl: cloudGirl !== null ? Math.max(cloudGirl, prev.girl) : prev.girl
-          };
-          try { localStorage.setItem("tally_cache", JSON.stringify(merged)); } catch(e){}
-          return merged;
-        });
-      } catch (err) {
-        console.warn("Using offline cached totals", err);
+  // Load shared global totals through our server-side Vercel API.
+  const refreshGlobalTotals = async () => {
+    try {
+      const response = await fetch("/api/votes", { cache: "no-store" });
+      if (!response.ok) throw new Error(`Vote totals request failed (${response.status})`);
+      const totals = await response.json();
+      if (!Number.isFinite(totals.boy) || !Number.isFinite(totals.girl)) {
+        throw new Error("Vote API returned invalid totals.");
       }
+      setGuesses({ boy: totals.boy, girl: totals.girl });
+      try { localStorage.setItem("tally_cache", JSON.stringify({boy: totals.boy, girl: totals.girl})); } catch (e) {}
+    } catch (error) {
+      console.error("Global vote totals could not be loaded:", error);
     }
-    loadTotals();
+  };
+
+  React.useEffect(() => {
+    refreshGlobalTotals();
+    const refreshTimer = setInterval(refreshGlobalTotals, 15000);
+    return () => clearInterval(refreshTimer);
   }, []);
 
   const handleVoteAndReveal = async (choice) => {
-    if (voteLock.current || revealing || revealed) return;
-    voteLock.current = true;
+    if (revealing || revealed) return;
 
-    let savedVote = null;
-    try { savedVote = localStorage.getItem("baby_reveal_vote"); } catch (e) {}
+    let priorVote = null;
+    try { priorVote = localStorage.getItem("baby_reveal_vote"); } catch (e) {}
 
-    // Already voted in this browser: replay the reveal, but do not count again.
-    if (savedVote || (() => { try { return localStorage.getItem("baby_reveal_has_voted"); } catch(e) { return null; } })()) {
-      setMyGuess(savedVote || "already-voted");
+    // This browser already voted: replay the reveal without incrementing again.
+    if (priorVote) {
+      setMyGuess(priorVote);
       triggerReveal();
       return;
     }
 
-    // Persist the vote before contacting the counter API.
-    try {
-      localStorage.setItem("baby_reveal_vote", choice);
-      localStorage.setItem("baby_reveal_has_voted", "true");
-    } catch (e) {}
-
+    // Lock the UI while the server records this vote.
+    setRevealing(true);
     setMyGuess(choice);
-
-    const currentGuesses = (() => {
-      try {
-        const saved = localStorage.getItem("tally_cache");
-        return saved ? JSON.parse(saved) : guesses;
-      } catch (e) { return guesses; }
-    })();
-
-    const updated = {
-      boy: choice === "boy" ? (Number(currentGuesses.boy) || 0) + 1 : (Number(currentGuesses.boy) || 0),
-      girl: choice === "girl" ? (Number(currentGuesses.girl) || 0) + 1 : (Number(currentGuesses.girl) || 0)
-    };
-    setGuesses(updated);
-    try { localStorage.setItem("tally_cache", JSON.stringify(updated)); } catch (e) {}
-
-    triggerReveal();
-
     try {
-      const upRes = await fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/${choice}/up`);
-      if (upRes.ok) {
-        const upData = await upRes.json();
-        const serverChoiceCount = (upData && typeof upData.count === "number") ? upData.count : updated[choice];
-        const other = choice === "boy" ? "girl" : "boy";
-        let serverOtherCount = updated[other];
+      const response = await fetch("/api/votes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ choice })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || `Vote request failed (${response.status})`);
 
-        try {
-          const otherRes = await fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/${other}`);
-          if (otherRes.ok) {
-            const otherData = await otherRes.json();
-            if (otherData && typeof otherData.count === "number") serverOtherCount = otherData.count;
-          }
-        } catch (e) {}
-
-        const merged = { [choice]: serverChoiceCount, [other]: serverOtherCount };
-        setGuesses(merged);
-        try { localStorage.setItem("tally_cache", JSON.stringify(merged)); } catch (e) {}
-      }
-    } catch (err) {
-      console.warn("Could not sync with counter server; local tally is shown.", err);
+      // Save only after the server confirms success.
+      try {
+        localStorage.setItem("baby_reveal_vote", choice);
+        localStorage.setItem("baby_reveal_has_voted", "true");
+      } catch (e) {}
+      setGuesses({ boy: result.boy, girl: result.girl });
+      try { localStorage.setItem("tally_cache", JSON.stringify({boy: result.boy, girl: result.girl})); } catch (e) {}
+      setRevealing(false);
+      triggerReveal();
+    } catch (error) {
+      console.error("Global vote could not be recorded:", error);
+      setRevealing(false);
+      setMyGuess(null);
+      alert("Your vote could not be recorded globally. Please try again.");
     }
   };
 
@@ -534,7 +508,6 @@ function App(){
         clearInterval(progressTimer);
         setRevealing(false);
         setRevealed(true);
-        voteLock.current = false;
       }
     }, 30);
   };
@@ -624,7 +597,7 @@ function App(){
           <>
             <div className="guessTally">
               <div className="guessTitle">
-                Family & Friends Guesses ({totalGuesses})
+                GLOBAL GUESSES ({totalGuesses})
               </div>
               <div className="guessBar">
                 <div className="guessBarBoy" style={{ width: `${boyPct}%` }} />
