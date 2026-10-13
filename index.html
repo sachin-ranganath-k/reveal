@@ -416,7 +416,8 @@ function App(){
       return { boy: 0, girl: 0 };
     }
   });
-  const [myGuess, setMyGuess] = React.useState(null);
+  const [myGuess, setMyGuess] = React.useState(() => { try { return localStorage.getItem("baby_reveal_vote"); } catch(e) { return null; } });
+  const voteLock = React.useRef(false);
 
   const gender = CONFIG.gender.toLowerCase();
   const isBoy = gender === "boy";
@@ -449,59 +450,65 @@ function App(){
   }, []);
 
   const handleVoteAndReveal = async (choice) => {
-    if (revealing || revealed) return;
+    if (voteLock.current || revealing || revealed) return;
+    voteLock.current = true;
+
+    let savedVote = null;
+    try { savedVote = localStorage.getItem("baby_reveal_vote"); } catch (e) {}
+
+    // Already voted in this browser: replay the reveal, but do not count again.
+    if (savedVote || (() => { try { return localStorage.getItem("baby_reveal_has_voted"); } catch(e) { return null; } })()) {
+      setMyGuess(savedVote || "already-voted");
+      triggerReveal();
+      return;
+    }
+
+    // Persist the vote before contacting the counter API.
+    try {
+      localStorage.setItem("baby_reveal_vote", choice);
+      localStorage.setItem("baby_reveal_has_voted", "true");
+    } catch (e) {}
 
     setMyGuess(choice);
 
-    // Check if this device has already cast a unique vote
-    const hasAlreadyVoted = localStorage.getItem("baby_reveal_has_voted");
-
-    if (!hasAlreadyVoted) {
-      // First time voting from this device -> lock it in
-      try { localStorage.setItem("baby_reveal_has_voted", "true"); } catch(e){}
-
-      // Instantly increment vote locally
-      const updated = {
-        boy: choice === "boy" ? guesses.boy + 1 : guesses.boy,
-        girl: choice === "girl" ? guesses.girl + 1 : guesses.girl
-      };
-      setGuesses(updated);
-      try { localStorage.setItem("tally_cache", JSON.stringify(updated)); } catch(e){}
-
-      triggerReveal();
-
-      // Send vote to cloud counter
+    const currentGuesses = (() => {
       try {
-        const upRes = await fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/${choice}/up`);
-        if (upRes.ok) {
-          const upData = await upRes.json();
-          const serverChoiceCount = (upData && typeof upData.count === "number") ? upData.count : updated[choice];
+        const saved = localStorage.getItem("tally_cache");
+        return saved ? JSON.parse(saved) : guesses;
+      } catch (e) { return guesses; }
+    })();
 
-          const other = choice === "boy" ? "girl" : "boy";
-          let serverOtherCount = updated[other];
-          try {
-            const otherRes = await fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/${other}`);
-            if (otherRes.ok) {
-              const otherData = await otherRes.json();
-              if (otherData && typeof otherData.count === "number") {
-                serverOtherCount = otherData.count;
-              }
-            }
-          } catch(e) {}
+    const updated = {
+      boy: choice === "boy" ? (Number(currentGuesses.boy) || 0) + 1 : (Number(currentGuesses.boy) || 0),
+      girl: choice === "girl" ? (Number(currentGuesses.girl) || 0) + 1 : (Number(currentGuesses.girl) || 0)
+    };
+    setGuesses(updated);
+    try { localStorage.setItem("tally_cache", JSON.stringify(updated)); } catch (e) {}
 
-          const merged = {
-            [choice]: Math.max(serverChoiceCount, updated[choice]),
-            [other]: Math.max(serverOtherCount, updated[other])
-          };
-          setGuesses(merged);
-          try { localStorage.setItem("tally_cache", JSON.stringify(merged)); } catch(e){}
-        }
-      } catch (err) {
-        console.warn("Could not sync with counter server; kept local count", err);
+    triggerReveal();
+
+    try {
+      const upRes = await fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/${choice}/up`);
+      if (upRes.ok) {
+        const upData = await upRes.json();
+        const serverChoiceCount = (upData && typeof upData.count === "number") ? upData.count : updated[choice];
+        const other = choice === "boy" ? "girl" : "boy";
+        let serverOtherCount = updated[other];
+
+        try {
+          const otherRes = await fetch(`https://api.counterapi.dev/v2/${NAMESPACE}/${other}`);
+          if (otherRes.ok) {
+            const otherData = await otherRes.json();
+            if (otherData && typeof otherData.count === "number") serverOtherCount = otherData.count;
+          }
+        } catch (e) {}
+
+        const merged = { [choice]: serverChoiceCount, [other]: serverOtherCount };
+        setGuesses(merged);
+        try { localStorage.setItem("tally_cache", JSON.stringify(merged)); } catch (e) {}
       }
-    } else {
-      // Duplicate vote from same device: ignore count increment and proceed to reveal
-      triggerReveal();
+    } catch (err) {
+      console.warn("Could not sync with counter server; local tally is shown.", err);
     }
   };
 
@@ -527,6 +534,7 @@ function App(){
         clearInterval(progressTimer);
         setRevealing(false);
         setRevealed(true);
+        voteLock.current = false;
       }
     }, 30);
   };
